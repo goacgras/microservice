@@ -16,6 +16,8 @@ import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { MyContext } from "../types";
 import { isAuth } from "../middleware/isAuth";
+import fetch from "node-fetch";
+// import axios from "axios";
 
 //****************
 //TODO
@@ -40,8 +42,31 @@ class UserResponse {
     errors?: FieldError[];
 }
 
+@ObjectType()
+class UserAccount {
+    @Field(() => String, { nullable: true })
+    username?: string;
+
+    @Field(() => Number, { nullable: true })
+    balance?: number;
+}
+
 @Resolver()
 export class UserResolver {
+    @Query(() => UserAccount, { nullable: true })
+    async checkUserAccount(@Arg("accountName") accountName: string) {
+        try {
+            const response = await fetch(
+                `http://localhost:5000/api/auth/checkAccount/${accountName}`
+            );
+            const data = await response.json();
+
+            return data;
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
     @UseMiddleware(isAuth)
     @Query(() => User, { nullable: true })
     async me(@Ctx() { res }: MyContext) {

@@ -82,8 +82,28 @@ const login = async (
     }
 };
 
+const checkAccount = async (req: Request, res: Response) => {
+    const username: string = req.params.username;
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.json({ username: "User not found" });
+        }
+
+        return res.json({
+            username: user.username,
+            balance: user.balance,
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: "Something went wrong" });
+    }
+};
+
 const router = Router();
 router.post("/register", register);
 router.post("/login", login);
+router.get("/checkAccount/:username", checkAccount);
 
 export default router;
