@@ -5,9 +5,12 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 
-import { Field } from "type-graphql";
+import { Field, ObjectType } from "type-graphql";
+import { classToPlain } from "class-transformer";
 
+@ObjectType()
 export default abstract class Entity extends BaseEntity {
+    @Field()
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -18,4 +21,8 @@ export default abstract class Entity extends BaseEntity {
     @Field(() => String)
     @UpdateDateColumn()
     updatedAt: Date;
+
+    toJSON() {
+        return classToPlain(this);
+    }
 }

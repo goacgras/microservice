@@ -16,6 +16,7 @@ import session from "express-session";
 import { HelloResolver } from "./resolvers/hello";
 import { UserResolver } from "./resolvers/user";
 import { ProductResolver } from "./resolvers/product";
+import { OrderResolver } from "./resolvers/order";
 import { createConnection } from "typeorm";
 import { MyContext } from "./types";
 
@@ -46,7 +47,12 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, UserResolver, ProductResolver],
+            resolvers: [
+                HelloResolver,
+                UserResolver,
+                ProductResolver,
+                OrderResolver,
+            ],
             validate: false,
         }),
         context: ({ req, res }): MyContext => ({

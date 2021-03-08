@@ -21,7 +21,7 @@ export class ProductResolver {
                     createdAt: "DESC",
                 },
             });
-            console.log("PRODUCTS: ", products);
+            // console.log("PRODUCTS: ", products);
             return products;
         } catch (err) {
             throw new Error(err);

@@ -14,11 +14,15 @@ export class Order extends Entity {
 
     @Field()
     @Column()
-    totalPrice: number;
+    totalPrice!: number;
 
     @Field()
     @Column()
-    quantity: number;
+    quantity!: number;
+
+    @Field()
+    @Column()
+    orderStatus!: string;
 
     @Field(() => User)
     @ManyToOne(() => User, (user) => user.orders)
