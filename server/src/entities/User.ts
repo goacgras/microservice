@@ -1,9 +1,16 @@
 import { Exclude } from "class-transformer";
 import { IsEmail, Length } from "class-validator";
-import { Entity as TOEntity, Column, Index, BeforeInsert } from "typeorm";
+import {
+    Entity as TOEntity,
+    Column,
+    Index,
+    BeforeInsert,
+    OneToMany,
+} from "typeorm";
 import Entity from "./Entity";
 
 import argon2 from "argon2";
+import { Log } from "./Log";
 
 @TOEntity("users")
 export class User extends Entity {
@@ -31,6 +38,9 @@ export class User extends Entity {
     @Index()
     @Column({ nullable: true })
     balance: number;
+
+    @OneToMany(() => Log, (log) => log.user)
+    logs: Log[];
 
     @BeforeInsert()
     async hashPassword() {
