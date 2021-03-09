@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { createConnection } from "typeorm";
 import express from "express";
 import morgan from "morgan";
+import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,6 +23,14 @@ const redis = new Redis();
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(trim);
+
+app.use(
+    cors({
+        origin: "http://localhost:3000",
+        credentials: true,
+        optionsSuccessStatus: 200,
+    })
+);
 
 app.use(
     session({

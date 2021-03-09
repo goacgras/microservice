@@ -5,6 +5,7 @@ import { User } from "../entities/User";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
 import { Session, SessionData } from "express-session";
+import authMiddleware from "../middleware/authMiddleware";
 
 const mapErrors = (errors: Object[]) => {
     return errors.reduce((prev: any, err: any) => {
@@ -64,7 +65,7 @@ const login = async (
         }
 
         const user = await User.findOne({ username });
-        if (!user) return res.status(404).json({ user: "User not found" });
+        if (!user) return res.status(404).json({ username: "User not found" });
 
         const validPassword = await argon2.verify(user.password, password);
         if (!validPassword)
@@ -101,9 +102,25 @@ const checkAccount = async (req: Request, res: Response) => {
     }
 };
 
+const me = (_: Request, res: Response) => {
+    return res.json(res.locals.user);
+};
+
+const logut = (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ success: false });
+        }
+        res.clearCookie("qid");
+        return res.status(200).json({ success: true });
+    });
+};
+
 const router = Router();
 router.post("/register", register);
 router.post("/login", login);
 router.get("/checkAccount/:username", checkAccount);
+router.get("/me", authMiddleware, me);
+router.get("/logout", authMiddleware, logut);
 
 export default router;

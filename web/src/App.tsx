@@ -1,53 +1,34 @@
+import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
+import Login from './pages/Login';
+import axios from 'axios';
+import Register from './pages/Register';
+import { Home } from './pages/Home';
+import { useAuthState } from './context/auth';
+
+axios.defaults.baseURL = 'http://localhost:5000/api';
+axios.defaults.withCredentials = true;
+
 function App() {
-    return (
-        <section className='flex items-center justify-center w-full h-screen bg-green-500 App'>
-            <div className='w-full max-w-md bg-gray-800'>
-                <form
-                    action=''
-                    className='px-8 py-8 pt-8 bg-white rounded shadow-md '
-                >
-                    <div className='px-4 pb-4'>
-                        <label
-                            htmlFor='email'
-                            className='block pb-2 text-sm font-bold'
-                        >
-                            EMAIL ADDRESS
-                        </label>
-                        <input
-                            type='email'
-                            name='email'
-                            id=''
-                            className='w-full px-3 py-2 leading-tight text-gray-700 border border-blue-300 rounded shadow appearance-none focus:outline-none focus:shadow-outline '
-                            placeholder='Johnbull@example.com'
-                        />
-                    </div>
-                    <div className='px-4 pb-4'>
-                        <label
-                            htmlFor='password'
-                            className='block pb-2 text-sm font-bold'
-                        >
-                            PASSWORD
-                        </label>
-                        <input
-                            type='password'
-                            name='email'
-                            id=''
-                            className='w-full px-3 py-2 leading-tight text-gray-700 border border-blue-300 rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                            placeholder='Enter your password'
-                        />
-                    </div>
-                    <div>
-                        <button
-                            className='px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline'
-                            type='button'
-                        >
-                            Sign In
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </section>
+    const { authenticated } = useAuthState();
+
+    let routes = (
+        <Switch>
+            <Route path="/login" exact component={Login} />
+            <Route path="/register" exact component={Register} />
+            <Redirect to="/login" />
+        </Switch>
     );
+
+    if (authenticated) {
+        routes = (
+            <Switch>
+                <Route path="/" exact component={Home} />
+                <Redirect to="/" />
+            </Switch>
+        );
+    }
+
+    return <BrowserRouter>{routes}</BrowserRouter>;
 }
 
 export default App;
