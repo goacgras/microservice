@@ -5,7 +5,7 @@ interface InputGroupProps {
     classname?: string;
     type: string;
     placeholder: string;
-    value: string;
+    value: string | number;
     error?: string | undefined;
     setValue: (str: string) => void;
 }

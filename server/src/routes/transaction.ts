@@ -98,7 +98,7 @@ const accountLogs = async (_: Request, res: Response) => {
             order: {
                 createdAt: "DESC",
             },
-            relations: ["user"],
+            // relations: ["user"],
         });
 
         return res.json(logs);

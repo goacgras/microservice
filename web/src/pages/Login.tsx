@@ -3,7 +3,7 @@ import { FormEvent } from 'react';
 import { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import InputGroup from '../Components/InputGroup';
-import { useAuthDispatch, useAuthState } from '../context/auth';
+import { useAuthDispatch } from '../context/auth';
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('');
