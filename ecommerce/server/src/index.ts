@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import express from "express";
+import cors from "cors";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -25,7 +26,7 @@ const main = async () => {
 
     const RedisStore = connectRedis(session);
     const redis = new Redis();
-
+    app.use(cors({ origin: "http://localhost:3001", credentials: true }));
     app.use(
         session({
             name: "qid",
@@ -61,7 +62,7 @@ const main = async () => {
         }),
     });
 
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({ app, cors: false });
 
     app.listen(5001, async () => {
         console.log("Server started at localhost:5001");
