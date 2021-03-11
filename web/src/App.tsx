@@ -2,7 +2,7 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
 import Login from './pages/Login';
 import axios from 'axios';
 import Register from './pages/Register';
-import { Home } from './pages/Home';
+import Home from './pages/Home';
 import { useAuthState } from './context/auth';
 import { SWRConfig } from 'swr';
 

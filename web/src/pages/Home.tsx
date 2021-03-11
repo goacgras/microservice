@@ -9,7 +9,7 @@ import InputGroup from '../Components/InputGroup';
 
 // interface HomeProps {}
 
-export const Home: React.FC = () => {
+const Home: React.FC = () => {
     const [amount, setAmount] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [password, setPassword] = useState('');
@@ -57,12 +57,18 @@ export const Home: React.FC = () => {
         }
     };
 
+    const cancelDeposit = () => {
+        setAmount('');
+        setPassword('');
+        setShowModal(false);
+    };
+
     let modal = null;
     if (showModal) {
         modal = (
             <>
                 <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-                    <div className="relative w-auto max-w-sm mx-auto my-6">
+                    <div className="relative w-auto max-w-sm mx-auto my-6 ">
                         {/*content*/}
                         <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none">
                             {/*header*/}
@@ -87,7 +93,7 @@ export const Home: React.FC = () => {
                                     className="px-6 py-2 mb-1 mr-1 text-sm font-bold text-red-500 uppercase outline-none background-transparent focus:outline-none"
                                     type="button"
                                     style={{ transition: 'all .15s ease' }}
-                                    onClick={() => setShowModal(false)}
+                                    onClick={cancelDeposit}
                                 >
                                     Cancel
                                 </button>
@@ -195,3 +201,4 @@ export const Home: React.FC = () => {
         </>
     );
 };
+export default Home;
