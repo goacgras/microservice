@@ -1,65 +1,77 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import { useRouter } from "next/dist/client/router";
+import Head from "next/head";
+import { useMeQuery, useProductsQuery } from "../generated/graphql";
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    const { data, loading, error } = useProductsQuery();
+    const { data: meData } = useMeQuery();
+    const router = useRouter();
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+    if (loading) return <div>Loading...</div>;
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+    if (!data?.products) {
+        return <div>Loading...</div>;
+    }
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+    if (!loading && !data) {
+        <div>
+            <div>Something went wrong on your query</div>
+            <div>{error?.message}</div>
+        </div>;
+    }
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+    const addToCart = () => {
+        if (!meData?.me) {
+            router.push("/login");
+            return;
+        }
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+        console.log("buy");
+    };
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+    return (
+        <>
+            <Head>
+                <title>Home page</title>
+            </Head>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+            <div className='container'>
+                <div className='grid grid-cols-3 gap-4 p-2'>
+                    {data.products.map((product) => (
+                        <div className='py-6' key={product.id}>
+                            <div className='flex max-w-md overflow-hidden bg-white rounded-lg shadow-lg'>
+                                <div className='w-1/3 bg-cover'>
+                                    {/* Images */}
+                                </div>
+                                <div className='w-2/3 p-4'>
+                                    <h1 className='text-2xl font-bold text-gray-900'>
+                                        {product.name}
+                                    </h1>
+                                    <p className='mt-2 text-sm text-gray-600'>
+                                        Lorem ipsum dolor sit amet consectetur
+                                        adipisicing elit In odit exercitationem
+                                        fuga id nam quia
+                                    </p>
+                                    {/* <div className='flex mt-2 item-center'>
+                                        THIS II WHERE IMAGE
+                                    </div> */}
+                                    <div className='flex justify-between mt-3 item-center'>
+                                        <h1 className='text-xl font-bold text-gray-700'>
+                                            ${product.price}
+                                        </h1>
+                                        <button
+                                            className='px-3 py-2 text-xs font-bold text-white uppercase bg-gray-800 rounded'
+                                            onClick={addToCart}
+                                        >
+                                            Add to Card
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </>
+    );
 }

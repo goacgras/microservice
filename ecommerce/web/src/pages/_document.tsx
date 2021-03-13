@@ -22,7 +22,10 @@ class MyDocument extends Document {
                         rel='stylesheet'
                     />
                 </Head>
-                <body className='font-body'>
+                <body
+                    className='font-body'
+                    style={{ backgroundColor: "#DAE0E6" }}
+                >
                     <Main />
                     <NextScript />
                 </body>

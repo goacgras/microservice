@@ -70,6 +70,19 @@ export class UserResolver {
         return res.locals.user;
     }
 
+    @Mutation(() => Boolean)
+    logout(@Ctx() { req, res }: MyContext) {
+        return new Promise((resolve) => {
+            req.session.destroy((err) => {
+                if (err) {
+                    resolve(false);
+                }
+                res.clearCookie("qid");
+                resolve(true);
+            });
+        });
+    }
+
     @Mutation(() => UserResponse)
     async login(
         @Arg("username") username: string,
@@ -156,12 +169,22 @@ export class UserResolver {
                 user: newUser,
             };
         } catch (err) {
-            if (err.code === "23505") {
+            if (err.code === "23505" && err.detail.includes("username")) {
                 return {
                     errors: [
                         {
-                            field: "username/email",
-                            message: "Username/Email already exist",
+                            field: "username",
+                            message: "Username already exist",
+                        },
+                    ],
+                };
+            }
+            if (err.code === "23505" && err.detail.includes("email")) {
+                return {
+                    errors: [
+                        {
+                            field: "email",
+                            message: "Email already exist",
                         },
                     ],
                 };
