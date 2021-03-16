@@ -1,4 +1,3 @@
-// import { Product } from "../entities/Product";
 import { Product } from "../entities/Product";
 import { OrderInput, RegisterInputs } from "../resolvers/inputs/registerInputs";
 

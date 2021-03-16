@@ -14,6 +14,7 @@ import { Product } from "../entities/Product";
 import { User } from "../entities/User";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
+import { makeId } from "../utils/helpers";
 import { validateOrder } from "../utils/validate";
 // import { validateOrder } from "../utils/validate";
 import { OrderInput } from "./inputs/registerInputs";
@@ -50,7 +51,8 @@ class OrderResponse {
 
 const ordering = async (
     product: { name: string; quantity: number },
-    user: User
+    user: User,
+    invoiceNumber: string
 ) => {
     const prod = await Product.findOne({
         where: {
@@ -66,6 +68,7 @@ const ordering = async (
     prod.quantity = prod.quantity - product.quantity;
 
     const newOrder = new Order({
+        invoiceNumber,
         buyer: user,
         productName: prod,
         totalPrice,
@@ -98,41 +101,90 @@ export class OrderResolver {
         }
     }
 
-    //TODO CREATE FUNCTION TO CHECK ACCOUNT AND RETURN USER BALANCE AND ACCOUNT
-    //ADD PAY METHOD IN BANK BACKEND {account and pin and amount}
+    @UseMiddleware(isAuth)
     @Mutation(() => PayResponse!)
     async payOrder(
-        @Arg("orderId") orderId: number,
+        @Arg("invoiceNumber") invoiceNumber: string,
         @Arg("accountName") accountName: string,
         @Arg("password") password: string
-    ) {
-        const order = await Order.findOne({ where: { id: orderId } });
-        if (!order) {
-            throw new Error("Order not found");
+    ): Promise<PayResponse> {
+        const orders = await Order.find({
+            where: {
+                invoiceNumber: invoiceNumber,
+            },
+        });
+
+        if (orders.length <= 0) {
+            throw new Error("Orders not found");
         }
 
-        if (order.orderStatus === "PAID") {
-            throw new Error("Order already been paid");
-        }
+        orders.forEach((o) => {
+            if (o.orderStatus === "PAID") {
+                throw new Error("Orders already been paid");
+            }
+        });
+
+        const totalPrice = orders.reduce(
+            (prev, curr) => prev + curr.totalPrice,
+            0
+        );
 
         const res = await axios.post(
             `http://localhost:5000/api/transaction/pay`,
             {
                 username: accountName,
                 password,
-                amount: order.totalPrice,
+                amount: totalPrice,
             }
         );
 
         if (res.data.status !== "SUCCESS") {
             return res.data;
         }
-
-        order.orderStatus = "PAID";
-        order.save();
+        Promise.all(
+            orders.map(async (o) => {
+                o.orderStatus = "PAID";
+                await o.save();
+            })
+        );
 
         return res.data;
     }
+
+    // @UseMiddleware(isAuth)
+    // @Mutation(() => PayResponse!)
+    // async payOrder(
+    //     @Arg("orderId") orderId: number,
+    //     @Arg("accountName") accountName: string,
+    //     @Arg("password") password: string
+    // ) {
+    //     const order = await Order.findOne({ where: { id: orderId } });
+    //     if (!order) {
+    //         throw new Error("Order not found");
+    //     }
+
+    //     if (order.orderStatus === "PAID") {
+    //         throw new Error("Order already been paid");
+    //     }
+
+    //     const res = await axios.post(
+    //         `http://localhost:5000/api/transaction/pay`,
+    //         {
+    //             username: accountName,
+    //             password,
+    //             amount: order.totalPrice,
+    //         }
+    //     );
+
+    //     if (res.data.status !== "SUCCESS") {
+    //         return res.data;
+    //     }
+
+    //     order.orderStatus = "PAID";
+    //     order.save();
+
+    //     return res.data;
+    // }
 
     @UseMiddleware(isAuth)
     @Mutation(() => OrderResponse)
@@ -147,8 +199,12 @@ export class OrderResolver {
             };
         }
 
+        const invoiceNumber = makeId(8);
+
         const newOrders = await Promise.all(
-            ordersData.map(async (p) => await ordering(p, res.locals.user))
+            ordersData.map(
+                async (p) => await ordering(p, res.locals.user, invoiceNumber)
+            )
         );
 
         return {

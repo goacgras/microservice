@@ -1,5 +1,11 @@
 import { Field, ObjectType } from "type-graphql";
-import { Column, Entity as TOEntity, ManyToOne, JoinColumn } from "typeorm";
+import {
+    Column,
+    Entity as TOEntity,
+    ManyToOne,
+    JoinColumn,
+    Index,
+} from "typeorm";
 import Entity from "./Entity";
 import { Product } from "./Product";
 import { User } from "./User";
@@ -11,6 +17,11 @@ export class Order extends Entity {
         super();
         Object.assign(this, order);
     }
+
+    @Field()
+    @Index()
+    @Column()
+    invoiceNumber: string;
 
     @Field()
     @Column()
