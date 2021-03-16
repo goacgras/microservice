@@ -9,3 +9,11 @@ export class RegisterInputs {
     @Field()
     email: string;
 }
+
+@InputType()
+export class OrderInput {
+    @Field()
+    name: string;
+    @Field()
+    quantity: number;
+}

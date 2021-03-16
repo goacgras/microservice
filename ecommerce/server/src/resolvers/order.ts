@@ -11,8 +11,12 @@ import {
 } from "type-graphql";
 import { Order } from "../entities/Order";
 import { Product } from "../entities/Product";
+import { User } from "../entities/User";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
+import { validateOrder } from "../utils/validate";
+// import { validateOrder } from "../utils/validate";
+import { OrderInput } from "./inputs/registerInputs";
 
 @ObjectType()
 export class PayResponse {
@@ -25,6 +29,55 @@ export class PayResponse {
     @Field(() => Number, { nullable: true })
     balance?: number;
 }
+
+@ObjectType()
+class OrderError {
+    @Field()
+    field?: string;
+
+    @Field()
+    message?: string;
+}
+
+@ObjectType()
+class OrderResponse {
+    @Field(() => [Order], { nullable: true })
+    order?: Order[];
+
+    @Field(() => [OrderError], { nullable: true })
+    errors?: OrderError[];
+}
+
+const ordering = async (
+    product: { name: string; quantity: number },
+    user: User
+) => {
+    const prod = await Product.findOne({
+        where: {
+            name: product.name,
+        },
+    });
+
+    if (!prod) {
+        throw new Error(`${product.name} not found`);
+    }
+
+    const totalPrice: number = prod.price * product.quantity;
+    prod.quantity = prod.quantity - product.quantity;
+
+    const newOrder = new Order({
+        buyer: user,
+        productName: prod,
+        totalPrice,
+        quantity: product.quantity,
+        orderStatus: "RESERVED",
+    });
+
+    await newOrder.save();
+    await prod.save();
+
+    return newOrder;
+};
 
 @Resolver()
 export class OrderResolver {
@@ -82,42 +135,64 @@ export class OrderResolver {
     }
 
     @UseMiddleware(isAuth)
-    @Mutation(() => Order)
+    @Mutation(() => OrderResponse)
     async placeOrder(
-        @Arg("productName") productName: string,
-        @Arg("quantity") quantity: number,
+        @Arg("ordersData", () => [OrderInput]) ordersData: OrderInput[],
         @Ctx() { res }: MyContext
-    ) {
-        // try {
-        const product = await Product.findOne({
-            where: { name: productName },
-        });
-        if (!product) {
-            throw new Error("Product not found");
+    ): Promise<OrderResponse> {
+        const err: [] = await validateOrder(ordersData);
+        if (err.length > 0) {
+            return {
+                errors: err,
+            };
         }
 
-        if (product.quantity <= 0 || product.quantity - quantity < 0) {
-            throw new Error("Insuficcient product quantity");
-        }
+        const newOrders = await Promise.all(
+            ordersData.map(async (p) => await ordering(p, res.locals.user))
+        );
 
-        const totalPrice: number = product.price * quantity;
-        product.quantity = product.quantity - quantity;
-
-        const newOrder = new Order({
-            buyer: res.locals.user,
-            productName: product,
-            totalPrice,
-            quantity,
-            orderStatus: "RESERVED",
-        });
-
-        await newOrder.save();
-        await product.save();
-
-        return newOrder;
-        // } catch (err) {
-        //     console.log(err);
-        //     throw new Error("Something went wrong");
-        // }
+        return {
+            order: newOrders,
+        };
     }
+
+    // @UseMiddleware(isAuth)
+    // @Mutation(() => Order)
+    // async placeOrder(
+    //     @Arg("productName") productName: string,
+    //     @Arg("quantity") quantity: number,
+    //     @Ctx() { res }: MyContext
+    // ) {
+    //     // try {
+    //     const product = await Product.findOne({
+    //         where: { name: productName },
+    //     });
+    //     if (!product) {
+    //         throw new Error("Product not found");
+    //     }
+
+    //     if (product.quantity <= 0 || product.quantity - quantity < 0) {
+    //         throw new Error("Insuficcient product quantity");
+    //     }
+
+    //     const totalPrice: number = product.price * quantity;
+    //     product.quantity = product.quantity - quantity;
+
+    //     const newOrder = new Order({
+    //         buyer: res.locals.user,
+    //         productName: product,
+    //         totalPrice,
+    //         quantity,
+    //         orderStatus: "RESERVED",
+    //     });
+
+    //     await newOrder.save();
+    //     await product.save();
+
+    //     return newOrder;
+    //     // } catch (err) {
+    //     //     console.log(err);
+    //     //     throw new Error("Something went wrong");
+    //     // }
+    // }
 }
