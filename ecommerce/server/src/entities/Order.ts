@@ -20,7 +20,7 @@ export class Order extends Entity {
 
     @Field()
     @Index()
-    @Column({ unique: true })
+    @Column()
     invoiceNumber: string;
 
     @Field()

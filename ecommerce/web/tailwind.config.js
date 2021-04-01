@@ -27,6 +27,7 @@ module.exports = {
         },
     },
     variants: {
+        display: ["group-hover"],
         extend: {
             backgroundColor: ["disabled"],
             borderColor: ["disabled"],

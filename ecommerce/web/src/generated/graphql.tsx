@@ -58,6 +58,7 @@ export type Order = {
   id: Scalars['Float'];
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
+  invoiceNumber: Scalars['String'];
   totalPrice: Scalars['Float'];
   quantity: Scalars['Float'];
   orderStatus: Scalars['String'];
@@ -72,7 +73,7 @@ export type Mutation = {
   register: UserResponse;
   addProduct: Product;
   payOrder: PayResponse;
-  placeOrder: Order;
+  placeOrder: OrderResponse;
 };
 
 
@@ -95,13 +96,12 @@ export type MutationAddProductArgs = {
 export type MutationPayOrderArgs = {
   password: Scalars['String'];
   accountName: Scalars['String'];
-  orderId: Scalars['Float'];
+  invoiceNumber: Scalars['String'];
 };
 
 
 export type MutationPlaceOrderArgs = {
-  quantity: Scalars['Float'];
-  productName: Scalars['String'];
+  ordersData: Array<OrderInput>;
 };
 
 export type UserResponse = {
@@ -135,6 +135,23 @@ export type PayResponse = {
   balance?: Maybe<Scalars['Float']>;
 };
 
+export type OrderResponse = {
+  __typename?: 'OrderResponse';
+  order?: Maybe<Array<Order>>;
+  errors?: Maybe<Array<OrderError>>;
+};
+
+export type OrderError = {
+  __typename?: 'OrderError';
+  field: Scalars['String'];
+  message: Scalars['String'];
+};
+
+export type OrderInput = {
+  name: Scalars['String'];
+  quantity: Scalars['Float'];
+};
+
 export type AuthResponseFragment = (
   { __typename?: 'UserResponse' }
   & { user?: Maybe<(
@@ -154,6 +171,19 @@ export type RegularErrorFragment = (
 export type RegularUserFragment = (
   { __typename?: 'User' }
   & Pick<User, 'email' | 'username'>
+);
+
+export type AddProductMutationVariables = Exact<{
+  input: ProductInput;
+}>;
+
+
+export type AddProductMutation = (
+  { __typename?: 'Mutation' }
+  & { addProduct: (
+    { __typename?: 'Product' }
+    & Pick<Product, 'id' | 'createdAt' | 'updatedAt' | 'name' | 'price' | 'quantity'>
+  ) }
 );
 
 export type LoginMutationVariables = Exact<{
@@ -236,6 +266,44 @@ export const AuthResponseFragmentDoc = gql`
 }
     ${RegularUserFragmentDoc}
 ${RegularErrorFragmentDoc}`;
+export const AddProductDocument = gql`
+    mutation AddProduct($input: ProductInput!) {
+  addProduct(input: $input) {
+    id
+    createdAt
+    updatedAt
+    name
+    price
+    quantity
+  }
+}
+    `;
+export type AddProductMutationFn = Apollo.MutationFunction<AddProductMutation, AddProductMutationVariables>;
+
+/**
+ * __useAddProductMutation__
+ *
+ * To run a mutation, you first call `useAddProductMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddProductMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addProductMutation, { data, loading, error }] = useAddProductMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useAddProductMutation(baseOptions?: Apollo.MutationHookOptions<AddProductMutation, AddProductMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddProductMutation, AddProductMutationVariables>(AddProductDocument, options);
+      }
+export type AddProductMutationHookResult = ReturnType<typeof useAddProductMutation>;
+export type AddProductMutationResult = Apollo.MutationResult<AddProductMutation>;
+export type AddProductMutationOptions = Apollo.BaseMutationOptions<AddProductMutation, AddProductMutationVariables>;
 export const LoginDocument = gql`
     mutation Login($username: String!, $password: String!) {
   login(username: $username, password: $password) {

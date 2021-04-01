@@ -2,6 +2,14 @@ import { Product } from "../entities/Product";
 import { OrderInput, RegisterInputs } from "../resolvers/inputs/registerInputs";
 
 export const validateRegister = (userInputs: RegisterInputs) => {
+    if (userInputs.username.trim() === "admin") {
+        return [
+            {
+                field: "username",
+                message: "This is admin username, Please change username",
+            },
+        ];
+    }
     if (!userInputs.email.includes("@")) {
         return [
             {

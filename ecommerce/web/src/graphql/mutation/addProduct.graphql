@@ -1,0 +1,10 @@
+mutation AddProduct($input: ProductInput!) {
+    addProduct(input: $input) {
+        id
+        createdAt
+        updatedAt
+        name
+        price
+        quantity
+    }
+}

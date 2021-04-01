@@ -1,10 +1,28 @@
+import { useEffect } from "react";
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
-import { useMeQuery, useProductsQuery } from "../generated/graphql";
+import {
+    OrderInput,
+    Product,
+    useMeQuery,
+    useProductsQuery,
+} from "../generated/graphql";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { placeOrder, getInitialCartItems } from "../store/orderReducer";
 
 export default function Home() {
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        dispatch(getInitialCartItems());
+    }, []);
+
+    const orders = useAppSelector<OrderInput[]>(
+        (state) => state.OrderReducer.orders
+    );
+
     const { data, loading, error } = useProductsQuery();
-    const { data: meData } = useMeQuery();
+    const { data: meData, loading: meLoading } = useMeQuery();
     const router = useRouter();
 
     if (loading) return <div>Loading...</div>;
@@ -20,13 +38,23 @@ export default function Home() {
         </div>;
     }
 
-    const addToCart = () => {
+    const addToCart = (product: Product) => {
         if (!meData?.me) {
             router.push("/login");
             return;
         }
+        const foundProd = orders.find((o) => o.name === product.name);
+        if (foundProd) {
+            return;
+        }
+
+        const newOrder: OrderInput = {
+            name: product.name,
+            quantity: 1,
+        };
 
         console.log("buy");
+        dispatch(placeOrder(newOrder));
     };
 
     return (
@@ -59,12 +87,16 @@ export default function Home() {
                                         <h1 className='text-xl font-bold text-gray-700'>
                                             ${product.price}
                                         </h1>
-                                        <button
-                                            className='px-3 py-2 text-xs font-bold text-white uppercase bg-gray-800 rounded'
-                                            onClick={addToCart}
-                                        >
-                                            Add to Card
-                                        </button>
+                                        {meData?.me?.username !== "admin" ? (
+                                            <button
+                                                className='px-3 py-2 text-xs font-bold text-white uppercase bg-gray-800 rounded'
+                                                onClick={() =>
+                                                    addToCart(product)
+                                                }
+                                            >
+                                                Add to Card
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>
